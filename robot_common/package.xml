@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>robot_common</name>
+    <version>0.0.1</version>
+    <description>robot_common</description>
+    <maintainer email="limx@limxdynamics.com">max</maintainer>
+    <license>TODO</license>
+    <buildtool_depend>catkin</buildtool_depend>
+</package>

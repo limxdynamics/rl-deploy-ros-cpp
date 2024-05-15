@@ -1,0 +1,6 @@
+robot_hw:
+  loop_frequency: 200
+  cycle_time_error_threshold: 0.002
+  power_limit: 6
+  contact_threshold: 40
+

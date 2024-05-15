@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>robot_hw</name>
+    <version>0.0.1</version>
+    <description>The robot_hw packages.</description>
+    <maintainer email="limx@limxdynamics.com">max</maintainer>
+    <license>TODO</license>
+    <author email="limx@limxdynamics.com">max</author>
+    <buildtool_depend>catkin</buildtool_depend>
+    <depend>roscpp</depend>
+    <depend>controller_interface</depend>
+    <depend>angles</depend>
+    <depend>pointfoot_sdk_lowlevel</depend>
+    <depend>robot_common</depend>
+    <depend>robot_description</depend>
+    <depend>hardware_interface</depend>
+    <depend>controller_manager</depend>
+    <depend>urdf</depend>
+</package>

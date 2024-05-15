@@ -1,0 +1,23 @@
+joystick_axes:
+  left_horizon: 0
+  left_vertical: 1
+  right_horizon: 2
+  right_vertical: 3
+
+joystick_buttons:
+  A: 0
+  B: 1
+  X: 2
+  Y: 3
+  L1: 4
+  R2: 5
+  L2: 6
+  R1: 7
+  SELECT: 8
+  START: 9
+  U: 12
+  D: 13
+  L: 14
+  R: 15
+  MENU: 16
+  BACK: 17

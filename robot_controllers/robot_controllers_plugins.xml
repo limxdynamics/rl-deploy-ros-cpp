@@ -1,0 +1,8 @@
+<library path="lib/librobot_controllers">
+    <class name="robot_controller/PointfootController" type="robot_controller::PointfootController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The pointfoot controller.
+        </description>
+    </class>
+</library>

@@ -1,0 +1,19 @@
+<launch>
+  <arg name="plot"   default="false"/>
+
+  <include file="$(find pointfoot_gazebo)/launch/empty_world.launch"/>
+  <rosparam file="$(find robot_controllers)/config/controllers.yaml" command="load"/>
+  <param name="policyFile" value="$(find robot_controllers)/config/pointfoot/policy/policy.onnx"/>
+  <param name="robot_description" command="cat $(find robot_description)/pointfoot/urdf/robot.urdf"/>
+  <rosparam file="$(find robot_controllers)/config/pointfoot/params.yaml" command="load"/>
+  <rosparam file="$(find robot_hw)/config/robot_hw.yaml" command="load"/>
+  <node name="pointfoot_hw" pkg="robot_hw" type="pointfoot_node" respawn="false" clear_params="true" required="true" output="screen" args="127.0.0.1" />
+  <group ns="pointfoot_hw">
+    <node name="controller_loader" pkg="controller_manager" type="controller_manager"
+      output="screen" args="load
+      /controllers/pointfoot_controller
+    "/>
+  </group>
+  <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" respawn="false" />
+  <include if="$(arg plot)" file="$(find robot_visualization)/launch/pointfoot_plot_sim.launch"/>
+</launch>

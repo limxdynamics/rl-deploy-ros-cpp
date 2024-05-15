@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>robot_controllers</name>
+    <version>0.0.1</version>
+    <description>The robot_controllers packages.</description>
+    <maintainer email="limx@limxdynamics.com">max</maintainer>
+    <license>TODO</license>
+    <author email="limx@limxdynamics.com">max</author>
+    <buildtool_depend>catkin</buildtool_depend>
+    <depend>roscpp</depend>
+    <depend>controller_interface</depend>
+    <depend>angles</depend>
+    <depend>pointfoot_sdk_lowlevel</depend>
+    <depend>robot_common</depend>
+    <depend>robot_description</depend>
+    <build_depend>pluginlib</build_depend>
+    <build_export_depend>pluginlib</build_export_depend>
+    <exec_depend>controller_manager</exec_depend>
+    <export>
+        <controller_interface plugin="${prefix}/robot_controllers_plugins.xml"/>
+    </export>
+</package>
