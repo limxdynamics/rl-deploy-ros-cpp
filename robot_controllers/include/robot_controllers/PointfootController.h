@@ -91,8 +91,6 @@ private:
   float imu_orientation_offset[3]; // IMU orientation offset
   std::vector<tensor_element_t> actions_; // Actions
   std::vector<tensor_element_t> observations_; // Observations
-
-  limxsdk::PointFoot *robot_; // Pointer to the PointFoot instance
 };
 
 } // namespace robot_controller

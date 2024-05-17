@@ -28,6 +28,31 @@ bool PointfootHW::startBipedController() {
     }
   }
 
+  // Get joint limits
+  ROS_INFO("Get joint limits start...");
+  robot_->getJointLimit(limitJointAngles_);
+
+  // Ensure the sizes of offset and the number of motors are the same.
+  assert(limitJointAngles_.size() == robot_->getMotorNumber());
+
+  for (size_t i = 0; i < limitJointAngles_.size(); i++) {
+    ROS_INFO_STREAM("limitJointAngles i: " << i << " angle: " << limitJointAngles_[i]);
+  }
+  ROS_INFO("Get joint limits finished!");
+
+  // Get joint offset
+  ROS_INFO("Get joint offset start...");
+  robot_->getJointOffset(offsetJointAngles_);
+
+  // Ensure the sizes of offset and the number of motors are the same.
+  assert(offsetJointAngles_.size() == robot_->getMotorNumber());
+
+  for (size_t i = 0; i < offsetJointAngles_.size(); i++) {
+    ROS_INFO_STREAM("offsetJointAngles  i: " << i << " angle: " << offsetJointAngles_[i]);
+    offsetJointAngles_[i] = offsetJointAngles_[i] - limitJointAngles_[i];
+  }
+  ROS_INFO("Get joint offset finished!");
+
   // Creating a message to switch controllers
   controller_manager_msgs::SwitchController sw;
   sw.request.start_controllers.push_back(CONTROLLER_NAME);
@@ -76,6 +101,12 @@ bool PointfootHW::stopBipedController() {
 bool PointfootHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh) {
   // Initializing the legged robot instance
   robot_ = limxsdk::PointFoot::getInstance();
+
+  // Resize limitJointAngles_ to match the number of motors, initializing with 0.0
+  limitJointAngles_.resize(robot_->getMotorNumber(), 0.0);  
+
+  // Resize offsetJointAngles_ to match the number of motors, initializing with 0.0
+  offsetJointAngles_.resize(robot_->getMotorNumber(), 0.0); 
 
   // Initializing the RobotHW base class
   if (!RobotHW::init(root_nh, robot_hw_nh)) {
@@ -185,7 +216,7 @@ void PointfootHW::read(const ros::Time& /*time*/, const ros::Duration& /*period*
   // Reading robot state
   limxsdk::RobotState robotstate = *robotstate_buffer_.readFromRT();
   for (int i = 0; i < robot_->getMotorNumber(); ++i) {
-    jointData_[i].pos_ = robotstate.q[i];
+    jointData_[i].pos_ = robotstate.q[i] - offsetJointAngles_[i];
     jointData_[i].vel_ = robotstate.dq[i];
     jointData_[i].tau_ = robotstate.tau[i];
   }
@@ -207,7 +238,7 @@ void PointfootHW::read(const ros::Time& /*time*/, const ros::Duration& /*period*
 void PointfootHW::write(const ros::Time& /*time*/, const ros::Duration& /*period*/) {
   // Writing commands to robot
   for (int i = 0; i < robot_->getMotorNumber(); ++i) {
-    robotCmd_.q[i] = static_cast<float>(jointData_[i].posDes_);
+    robotCmd_.q[i] = static_cast<float>(jointData_[i].posDes_ + offsetJointAngles_[i]);
     robotCmd_.dq[i] = static_cast<float>(jointData_[i].velDes_);
     robotCmd_.Kp[i] = static_cast<float>(jointData_[i].kp_);
     robotCmd_.Kd[i] = static_cast<float>(jointData_[i].kd_);

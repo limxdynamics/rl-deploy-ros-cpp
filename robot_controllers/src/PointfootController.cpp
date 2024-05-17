@@ -13,50 +13,11 @@ namespace robot_controller {
 
 // Initialize the controller
 bool PointfootController::init(hardware_interface::RobotHW *robot_hw, ros::NodeHandle &nh) {
-  robot_ = limxsdk::PointFoot::getInstance();
   return ControllerBase::init(robot_hw, nh);
 }
 
 // Perform initialization when the controller starts
 void PointfootController::starting(const ros::Time &time) {
-  try {
-    // Get joint limits
-    ROS_INFO("Get joint limits start...");
-    std::vector<float> joint_limit_;
-    robot_->getJointLimit(joint_limit_);
-    for (size_t i = 0; i < joint_limit_.size(); i++) {
-      ROS_INFO_STREAM("joint limit i: " << i << " angle: " << joint_limit_[i]);
-    }
-    limitJointAngles_.resize(joint_limit_.size());
-    for (int i = 0; i < joint_limit_.size(); ++i) {
-      limitJointAngles_(i) = joint_limit_[i];
-    }
-    ROS_INFO("Get joint limits finished!");
-
-    // Get joint offset
-    ROS_INFO("Get joint offset start...");
-    std::vector<float> joint_calibration_zero_;
-    robot_->getJointOffset(joint_calibration_zero_);
-    for (size_t i = 0; i < joint_calibration_zero_.size(); i++) {
-      ROS_INFO_STREAM("joint_calibration_zero_ i: " << i << " angle: " << joint_calibration_zero_[i]);
-    }
-    offsetJointAngles_.resize(joint_calibration_zero_.size());
-    for (int i = 0; i < joint_calibration_zero_.size(); ++i) {
-      offsetJointAngles_(i) = joint_calibration_zero_[i];
-    }
-    ROS_INFO("Get joint offset finished!");
-
-    offsetJointAngles_ = offsetJointAngles_ - limitJointAngles_;
-  } catch (const std::exception &e) {
-    ROS_ERROR("Error in the LeggedRobotCfg: %s", e.what());
-    return;
-  }
-
-  for (int i = 0; i < hybridJointHandles_.size(); i++) {
-    ROS_INFO_STREAM("starting hybridJointHandle: " << hybridJointHandles_[i].getPosition() - offsetJointAngles_[i]);
-    defaultJointAngles_[i] = (hybridJointHandles_[i].getPosition() - offsetJointAngles_[i]);
-  }
-
   standPercent_ += 1 / (standDuration_ * loopFrequency_);
 
   loopCount_ = 0;
@@ -100,7 +61,7 @@ void PointfootController::handleWalkMode() {
   // Set action
   vector_t jointPos(hybridJointHandles_.size()), jointVel(hybridJointHandles_.size());
   for (size_t i = 0; i < hybridJointHandles_.size(); i++) {
-    jointPos(i) = hybridJointHandles_[i].getPosition() - offsetJointAngles_[i];
+    jointPos(i) = hybridJointHandles_[i].getPosition();
     jointVel(i) = hybridJointHandles_[i].getVelocity();
   }
 
@@ -113,7 +74,7 @@ void PointfootController::handleWalkMode() {
         (robotCfg_.controlCfg.damping * jointVel(i) + robotCfg_.controlCfg.user_torque_limit) / robotCfg_.controlCfg.stiffness;
     actions_[i] = std::max(actionMin / robotCfg_.controlCfg.action_scale_pos,
                            std::min(actionMax / robotCfg_.controlCfg.action_scale_pos, (scalar_t)actions_[i]));
-    scalar_t pos_des = actions_[i] * robotCfg_.controlCfg.action_scale_pos + initJointAngles_(i, 0) + offsetJointAngles_[i];
+    scalar_t pos_des = actions_[i] * robotCfg_.controlCfg.action_scale_pos + initJointAngles_(i, 0);
     hybridJointHandles_[i].setCommand(pos_des, 0, robotCfg_.controlCfg.stiffness, robotCfg_.controlCfg.damping,
                                       0, 2);
 
@@ -126,7 +87,7 @@ void PointfootController::handleWalkMode() {
 void PointfootController::handleStandMode() {
   if (standPercent_ < 1) {
     for (int j = 0; j < hybridJointHandles_.size(); j++) {
-      scalar_t pos_des = defaultJointAngles_[j] * (1 - standPercent_) + initJointAngles_[j] * standPercent_ + offsetJointAngles_[j];
+      scalar_t pos_des = defaultJointAngles_[j] * (1 - standPercent_) + initJointAngles_[j] * standPercent_;
       hybridJointHandles_[j].setCommand(pos_des, 0, robotCfg_.controlCfg.stiffness,
                                         robotCfg_.controlCfg.damping, 0, 2);
     }
@@ -309,7 +270,7 @@ void PointfootController::computeObservation() {
   vector_t jointPos(initState.size());
   vector_t jointVel(initState.size());
   for (size_t i = 0; i < hybridJointHandles_.size(); ++i) {
-    jointPos(i) = hybridJointHandles_[i].getPosition() - offsetJointAngles_[i];
+    jointPos(i) = hybridJointHandles_[i].getPosition();
     jointVel(i) = hybridJointHandles_[i].getVelocity();
   }
 

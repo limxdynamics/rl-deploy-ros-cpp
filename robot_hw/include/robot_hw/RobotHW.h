@@ -62,6 +62,8 @@ protected:
   robot_common::HybridJointInterface hybridJointInterface_;         // Interface for hybrid joint data.
   robot_common::ContactSensorInterface contactSensorInterface_;    // Interface for contact sensor data.
   std::shared_ptr<urdf::Model> urdfModel_;                        // Shared pointer to URDF model.
+  std::vector<float> limitJointAngles_;                           // Vector storing joint angle limits.
+  std::vector<float> offsetJointAngles_;                          // Vector storing joint angle offsets.
 };
 
 }  // namespace hw

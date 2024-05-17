@@ -168,8 +168,6 @@ protected:
 
   vector_t defaultJointAngles_; // Default joint angles
   vector_t initJointAngles_;    // Initial joint angles in standard standing pose
-  vector_t offsetJointAngles_;  // Zero offset values
-  vector_t limitJointAngles_;   // Joint limits
 
   scalar_t standPercent_;       // Standing percent
   scalar_t standDuration_;      // Standing duration
