@@ -162,11 +162,11 @@ bool PointfootHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh) {
       && joystick_axes_map_.count("right_horizon") > 0 && joystick_axes_map_.count("right_vertical") > 0) {
       static ros::Time lastpub;
       ros::Time now = ros::Time::now();
-      if ((now.toSec() - lastpub.toSec()) >= (1.0 / 30)) {
+      if (fabs(now.toSec() - lastpub.toSec()) >= (1.0 / 30)) {
         geometry_msgs::Twist twist;
-        twist.angular.z = msg->axes[joystick_axes_map_["left_horizon"]] * 0.4;
-        twist.linear.x = msg->axes[joystick_axes_map_["left_vertical"]] * 0.8;
-        twist.linear.y = msg->axes[joystick_axes_map_["right_horizon"]] * 0.8;
+        twist.linear.x = msg->axes[joystick_axes_map_["left_vertical"]] * 0.5;
+        twist.linear.y = msg->axes[joystick_axes_map_["left_horizon"]] * 0.5;
+        twist.angular.z = msg->axes[joystick_axes_map_["right_horizon"]] * 0.5;
         cmd_vel_pub_.publish(twist);
         lastpub = now;
       }
