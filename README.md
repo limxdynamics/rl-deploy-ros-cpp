@@ -79,3 +79,17 @@
     cd ~/limx_ws
     catkin_make install
     ```
+
+- 运行仿真
+
+  ```
+  source install/setup.bash
+  roslaunch robot_hw pointfoot_hw_sim.launch
+  ```
+
+  
+
+​		
+
+
+    
