@@ -86,6 +86,7 @@
   source install/setup.bash
   roslaunch robot_hw pointfoot_hw_sim.launch
   ```
+  ![](doc/simulator.gif)
 
   
 
