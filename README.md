@@ -88,9 +88,3 @@
   ```
   ![](doc/simulator.gif)
 
-  
-
-​		
-
-
-    

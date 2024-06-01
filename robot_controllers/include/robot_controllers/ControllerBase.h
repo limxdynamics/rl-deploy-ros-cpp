@@ -47,12 +47,12 @@ private:
 struct RobotCfg {
   // Control configuration settings
   struct ControlCfg {
-    float stiffness;            // Stiffness parameter
-    float damping;              // Damping parameter
-    float action_scale_pos;     // Scaling factor for position action
-    float action_scale_vel;     // Scaling factor for velocity action
-    int decimation;             // Decimation factor
-    float user_torque_limit;    // User-defined torque limit
+    float stiffness{0.0};            // Stiffness parameter
+    float damping{0.0};              // Damping parameter
+    float action_scale_pos{0.0};     // Scaling factor for position action
+    float action_scale_vel{0.0};     // Scaling factor for velocity action
+    int decimation{0};             // Decimation factor
+    float user_torque_limit{0.0};    // User-defined torque limit
 
     // Print control configuration settings
     void print() {
@@ -70,10 +70,10 @@ struct RobotCfg {
   struct RlCfg {
     // Observation scaling parameters
     struct ObsScales {
-      scalar_t linVel;            // Linear velocity scaling
-      scalar_t angVel;            // Angular velocity scaling
-      scalar_t dofPos;            // Degree of freedom position scaling
-      scalar_t dofVel;            // Degree of freedom velocity scaling
+      scalar_t linVel{0.0};            // Linear velocity scaling
+      scalar_t angVel{0.0};            // Angular velocity scaling
+      scalar_t dofPos{0.0};            // Degree of freedom position scaling
+      scalar_t dofVel{0.0};            // Degree of freedom velocity scaling
 
       // Print observation scaling parameters
       void print() {
@@ -86,8 +86,8 @@ struct RobotCfg {
       }
     };
 
-    scalar_t clipActions;       // Action clipping parameter
-    scalar_t clipObs;           // Observation clipping parameter
+    scalar_t clipActions{0.0};       // Action clipping parameter
+    scalar_t clipObs{0.0};           // Observation clipping parameter
     ObsScales obsScales;        // Observation scaling settings
   };
   RlCfg rlCfg;                   // RL configuration settings
