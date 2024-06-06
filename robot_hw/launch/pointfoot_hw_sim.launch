@@ -1,6 +1,8 @@
 <launch>
   <arg name="plot"   default="false"/>
 
+  <param name="use_gazebo" value="true"/>
+
   <include file="$(find pointfoot_gazebo)/launch/empty_world.launch"/>
   <rosparam file="$(find robot_controllers)/config/controllers.yaml" command="load"/>
   <param name="policyFile" value="$(find robot_controllers)/config/pointfoot/policy/policy.onnx"/>

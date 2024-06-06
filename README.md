@@ -45,35 +45,42 @@
 可以按照以下步骤，创建一个RL部署开发工作空间：
 
 - 打开一个Bash终端。
+
 - 创建一个新目录来存放工作空间。例如，可以在用户的主目录下创建一个名为“limx_ws”的目录：
     ```Bash
     mkdir -p ~/limx_ws/src
     ```
+    
 - 下载运动控制开发接口：
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/pointfoot-sdk-lowlevel.git
     ```
+    
 - 下载Gazebo仿真器：
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/pointfoot-gazebo-ros.git
     ```
+    
 - 下载机器人模型描述文件
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/robot-description.git
     ```
+    
 - 下载可视化工具
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/robot-visualization.git
     ```
+    
 - 下载RL部署源码：
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/rl-deploy-ros-cpp.git
     ```
+    
 - 编译工程：
     ```Bash
     cd ~/limx_ws
@@ -82,6 +89,9 @@
 
 - 运行仿真
 
+  通过运行Shell命令启动Gazebo仿真器，然后在仿真器窗口中按 `Ctrl + Shift + R`，机器人将开始移动。您还可以通过将 `Robot Steering` 插件的发布主题设置为 `/cmd_vel` 来控制机器人的行走。
+  
+  
   ```
   source install/setup.bash
   roslaunch robot_hw pointfoot_hw_sim.launch

@@ -35,6 +35,21 @@ int main(int argc, char **argv) {
     // Create and initialize RobotHWLoop instance
     hw::RobotHWLoop loop(nh, robot_hw_nh, hw);
 
+    // Check if Gazebo should be used
+    bool use_gazebo;
+    if (!nh.getParam("use_gazebo", use_gazebo)) {
+        ROS_WARN("Failed to get param 'use_gazebo', defaulting to false");
+        use_gazebo = false;
+    }
+
+    // If Gazebo is being used, start the Biped controller in a detached thread
+    if (use_gazebo) {
+      std::thread controller_thread([hw]() {
+        hw->startBipedController();
+      });
+      controller_thread.detach();
+    }
+
     // Start ROS event loop
     ros::spin();
   } catch (const std::exception &e) {

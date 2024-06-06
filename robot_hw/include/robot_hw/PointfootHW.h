@@ -49,16 +49,16 @@ public:
 
   bool loadUrdf(ros::NodeHandle &nh) override;
 
+  bool startBipedController();
+
+  bool stopBipedController();
+
 private:
   bool setupJoints();
 
   bool setupImu();
 
   bool setupContactSensor(ros::NodeHandle &nh);
-
-  bool startBipedController();
-
-  bool stopBipedController();
 
   MotorData jointData_[6]{}; // NOLINT(modernize-avoid-c-arrays)
   ImuData imuData_{};
