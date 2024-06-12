@@ -90,7 +90,25 @@ struct RobotCfg {
     scalar_t clipObs{0.0};           // Observation clipping parameter
     ObsScales obsScales;        // Observation scaling settings
   };
+
+  // User command configuration settings
+  struct UserCmdCfg {
+    double linVel_x{0.0}; 
+    double linVel_y{0.0}; 
+    double angVel_yaw{0.0}; 
+
+    // Print user command scaling parameters
+    void print() {
+      ROS_INFO_STREAM("=======Start User Cmd Scales========");
+      ROS_INFO_STREAM("lin_vel_x: " << linVel_x);
+      ROS_INFO_STREAM("lin_vel_y: " << linVel_y);
+      ROS_INFO_STREAM("ang_vel_yaw: " << angVel_yaw);
+      ROS_INFO_STREAM("=======End User Cmd Scales========\n");
+    }
+  };
+
   RlCfg rlCfg;                   // RL configuration settings
+  UserCmdCfg userCmdCfg;         // User command configuration settings
   std::map<std::string, double> initState;  // Initial state settings
   ControlCfg controlCfg;         // Control configuration settings
 
@@ -98,6 +116,7 @@ struct RobotCfg {
   void print() {
     rlCfg.obsScales.print();
     controlCfg.print();
+    userCmdCfg.print();
     ROS_INFO_STREAM("clipActions: " << rlCfg.clipActions);
     ROS_INFO_STREAM("clipObs: " << rlCfg.clipObs);
   }

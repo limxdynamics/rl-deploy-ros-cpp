@@ -16,6 +16,6 @@
       /controllers/pointfoot_controller
     "/>
   </group>
-  <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" respawn="false" />
+  <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering" respawn="false" />
   <include if="$(arg plot)" file="$(find robot_visualization)/launch/pointfoot_plot_sim.launch"/>
 </launch>

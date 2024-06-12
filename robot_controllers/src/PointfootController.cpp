@@ -190,7 +190,11 @@ bool PointfootController::loadRLCfg() {
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/imu_orientation_offset/yaw", imu_orientation_offset[0]));
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/imu_orientation_offset/pitch", imu_orientation_offset[1]));
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/imu_orientation_offset/roll", imu_orientation_offset[2]));
-    
+
+    error += static_cast<int>(!nh_.getParam("/PointfootCfg/user_cmd_scales/lin_vel_x", robotCfg_.userCmdCfg.linVel_x));
+    error += static_cast<int>(!nh_.getParam("/PointfootCfg/user_cmd_scales/lin_vel_y", robotCfg_.userCmdCfg.linVel_y));
+    error += static_cast<int>(!nh_.getParam("/PointfootCfg/user_cmd_scales/ang_vel_yaw", robotCfg_.userCmdCfg.angVel_yaw));
+
     if (error) {
       ROS_ERROR("Load parameters from ROS parameter server error!!!");
     }
@@ -277,9 +281,9 @@ void PointfootController::computeObservation() {
   vector_t actions(lastActions_);
 
   // Define command scaler and observation vector
-  matrix_t commandScaler = Eigen::DiagonalMatrix<scalar_t, 3>(robotCfg_.rlCfg.obsScales.linVel,
-                                                              robotCfg_.rlCfg.obsScales.linVel,
-                                                              robotCfg_.rlCfg.obsScales.linVel);
+  matrix_t commandScaler = Eigen::DiagonalMatrix<scalar_t, 3>(robotCfg_.userCmdCfg.linVel_x,
+                                                              robotCfg_.userCmdCfg.linVel_y,
+                                                              robotCfg_.userCmdCfg.angVel_yaw);
 
   vector_t obs(observationSize_);
   vector3_t scaled_commands = commandScaler * commands_;
@@ -311,13 +315,13 @@ void PointfootController::cmdVelCallback(const geometry_msgs::TwistConstPtr &msg
   // Update the commands with the linear and angular velocities from the Twist message.
 
   // Set linear x velocity.
-  commands_(0) = msg->linear.x;
+  commands_(0) = (msg->linear.x > 1.0 ? 1.0 : (msg->linear.x < -1.0 ? -1.0 : msg->linear.x));
 
   // Set linear y velocity.
-  commands_(1) = msg->linear.y;
+  commands_(1) = (msg->linear.y > 1.0 ? 1.0 : (msg->linear.y < -1.0 ? -1.0 : msg->linear.y));
 
   // Set angular z velocity.
-  commands_(2) = msg->angular.z;
+  commands_(2) = (msg->angular.z > 1.0 ? 1.0 : (msg->angular.z < -1.0 ? -1.0 : msg->angular.z));
 }
 
 } // namespace

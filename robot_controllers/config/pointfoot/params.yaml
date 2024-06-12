@@ -48,3 +48,8 @@ PointfootCfg:
     roll: 0.0
     pitch: 0.0
     yaw: 0.0
+
+  user_cmd_scales:
+    lin_vel_x: 1.5
+    lin_vel_y: 1.0
+    ang_vel_yaw: 0.5
