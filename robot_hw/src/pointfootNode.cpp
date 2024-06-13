@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
     // If Gazebo is being used, start the Biped controller in a detached thread
     if (use_gazebo) {
       std::thread controller_thread([hw]() {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<int64_t>(3.0 * 1e9)));
         hw->startBipedController();
       });
       controller_thread.detach();

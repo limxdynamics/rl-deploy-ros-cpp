@@ -25,7 +25,7 @@ bool ControllerBase::init(hardware_interface::RobotHW *robot_hw, ros::NodeHandle
   initJointAngles_.resize(initState.size());
   // Note: The order of joint angles below should match the order during training.
   std::string jointNames;
-  for (int i = 0; i < jointNames_.size(); i++) {
+  for (size_t i = 0; i < jointNames_.size(); i++) {
     hybridJointHandles_.push_back(hybridJointInterface->getHandle(jointNames_[i]));
     initJointAngles_(i) = initState[jointNames_[i]];
     jointNames += jointNames_[i];

@@ -18,6 +18,11 @@ bool PointfootController::init(hardware_interface::RobotHW *robot_hw, ros::NodeH
 
 // Perform initialization when the controller starts
 void PointfootController::starting(const ros::Time &time) {
+  for (size_t i = 0; i < hybridJointHandles_.size(); i++) {
+    ROS_INFO_STREAM("starting hybridJointHandle: " << hybridJointHandles_[i].getPosition());
+    defaultJointAngles_[i] = hybridJointHandles_[i].getPosition();
+  }
+
   standPercent_ += 1 / (standDuration_ * loopFrequency_);
 
   loopCount_ = 0;
@@ -65,7 +70,7 @@ void PointfootController::handleWalkMode() {
     jointVel(i) = hybridJointHandles_[i].getVelocity();
   }
 
-  for (int i = 0; i < hybridJointHandles_.size(); i++) {
+  for (size_t i = 0; i < hybridJointHandles_.size(); i++) {
     scalar_t actionMin =
         jointPos(i) - initJointAngles_(i, 0) +
         (robotCfg_.controlCfg.damping * jointVel(i) - robotCfg_.controlCfg.user_torque_limit) / robotCfg_.controlCfg.stiffness;
@@ -123,7 +128,7 @@ bool PointfootController::loadModel() {
   policyOutputNames_.clear();
   policyInputShapes_.clear();
   policyOutputShapes_.clear();
-  for (int i = 0; i < policySessionPtr_->GetInputCount(); i++) {
+  for (size_t i = 0; i < policySessionPtr_->GetInputCount(); i++) {
     policyInputNames_.push_back(policySessionPtr_->GetInputName(i, allocator));
     policyInputShapes_.push_back(policySessionPtr_->GetInputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape());
     ROS_INFO("GetInputName: %s", policySessionPtr_->GetInputName(i, allocator));
@@ -137,7 +142,7 @@ bool PointfootController::loadModel() {
     }
     ROS_INFO("Shape: [%s]", shapeString.c_str());
   }
-  for (int i = 0; i < policySessionPtr_->GetOutputCount(); i++) {
+  for (size_t i = 0; i < policySessionPtr_->GetOutputCount(); i++) {
     policyOutputNames_.push_back(policySessionPtr_->GetOutputName(i, allocator));
     ROS_INFO("GetOutputName: %s", policySessionPtr_->GetOutputName(i, allocator));
     policyOutputShapes_.push_back(policySessionPtr_->GetOutputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape());
@@ -242,7 +247,7 @@ void PointfootController::computeActions() {
                                                                 inputValues.data(), 1, policyOutputNames_.data(),
                                                                 1);
 
-  for (int i = 0; i < actionsSize_; i++) {
+  for (size_t i = 0; i < actionsSize_; i++) {
     actions_[i] = *(outputValues[0].GetTensorMutableData<tensor_element_t>() + i);
   }
 }
