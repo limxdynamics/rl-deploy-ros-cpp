@@ -21,7 +21,7 @@ PointfootCfg:
   control:
     # PD Drive parameters:
     stiffness: 40.0
-    damping: 2.5
+    damping: 2.0
     action_scale_pos: 0.5
     decimation: 4
     user_torque_limit: 60
