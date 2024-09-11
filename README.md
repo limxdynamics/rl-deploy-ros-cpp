@@ -87,6 +87,24 @@
     catkin_make install
     ```
 
+- 选择机器人类型
+
+  - 通过 Shell 命令 `tree -L 1 src/robot-description/pointfoot ` 列出可用的机器人类型：
+  
+    ```
+    src/robot-description/pointfoot
+    ├── PF_P441A
+    ├── PF_P441B
+    ├── PF_P441C
+    └── PF_P441C2
+    ```
+  
+  - 以 `PF_P441A` 为例，设置机器人类型：
+  
+    ```
+    echo 'export ROBOT_TYPE=PF_P441A' >> ~/.bashrc && source ~/.bashrc
+    ```
+  
 - 运行仿真
 
   通过运行Shell命令启动Gazebo仿真器，然后在仿真器窗口中按 `Ctrl + Shift + R`，机器人将开始移动。您还可以通过将 `Robot Steering` 插件的发布主题设置为 `/cmd_vel` 来控制机器人的行走。
