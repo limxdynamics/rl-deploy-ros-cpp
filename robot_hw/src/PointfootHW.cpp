@@ -112,8 +112,8 @@ bool PointfootHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh) {
   // You can customize it according to your needs.
   robot_->subscribeSensorJoy([this](const limxsdk::SensorJoyConstPtr& msg) {
     // Logic for starting biped controller
-    if (calibration_state_ == 0 && joystick_btn_map_.count("L1") > 0 && joystick_btn_map_.count("A") > 0) {
-      if (msg->buttons[joystick_btn_map_["L1"]] == 1 && msg->buttons[joystick_btn_map_["A"]] == 1) {
+    if (calibration_state_ == 0 && joystick_btn_map_.count("L1") > 0 && joystick_btn_map_.count("Y") > 0) {
+      if (msg->buttons[joystick_btn_map_["L1"]] == 1 && msg->buttons[joystick_btn_map_["Y"]] == 1) {
         startBipedController();
       }
     }
