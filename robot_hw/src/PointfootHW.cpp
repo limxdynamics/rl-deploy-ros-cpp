@@ -62,14 +62,25 @@ bool PointfootHW::stopBipedController() {
   if (switch_controllers_client_.call(sw.request, sw.response)) {
     if (sw.response.ok) {
       ROS_INFO("Stop controller %s successfully.", sw.request.stop_controllers[0].c_str());
-      return true;
     } else {
       ROS_WARN("Stop controller %s failed.", sw.request.stop_controllers[0].c_str());
     }
   } else {
     ROS_WARN("Failed to stop controller %s.", sw.request.stop_controllers[0].c_str());
   }
-  return false;
+
+  for (int i = 0; i < robot_->getMotorNumber(); ++i) {
+    robotCmd_.q[i] = jointData_[i].posDes_ = 0.0;
+    robotCmd_.dq[i] = jointData_[i].velDes_ = 0.0;
+    robotCmd_.Kp[i] = jointData_[i].kp_ = 0.0;
+    robotCmd_.tau[i] = jointData_[i].tau_ff_ = 0.0;
+    robotCmd_.Kd[i] = jointData_[i].kd_ = 1.0;
+  }
+  robot_->publishRobotCmd(robotCmd_);
+
+  std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<int64_t>(1.0 * 1e9)));
+
+  return true;
 }
 
 // Method to initialize the hardware interface
@@ -122,6 +133,7 @@ bool PointfootHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh) {
     if (joystick_btn_map_.count("L1") > 0 && joystick_btn_map_.count("X") > 0) {
       if (msg->buttons[joystick_btn_map_["L1"]] == 1 && msg->buttons[joystick_btn_map_["X"]] == 1) {
         ROS_FATAL("L1 + X stopping controller!");
+        stopBipedController();
         abort();
       }
     }
@@ -155,12 +167,14 @@ bool PointfootHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh) {
     // Check if the diagnostic message pertains to EtherCAT
     if (msg->name == "ethercat" && msg->level == limxsdk::DiagnosticValue::ERROR) {
       ROS_FATAL("Ethercat code: %d, msg: %s", msg->code, msg->message.c_str());
+      stopBipedController();
       abort();
     }
 
     // Check if the diagnostic message pertains to IMU
     if (msg->name == "imu" && msg->level == limxsdk::DiagnosticValue::ERROR) {
       ROS_FATAL("IMU code: %d, msg: %s", msg->code, msg->message.c_str());
+      stopBipedController();
       abort();
     }
   });
