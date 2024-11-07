@@ -60,7 +60,7 @@ private:
 
   bool setupContactSensor(ros::NodeHandle &nh);
 
-  MotorData jointData_[6]{}; // NOLINT(modernize-avoid-c-arrays)
+  std::vector<MotorData> jointData_; // Vector to store motor data for each joint.
   ImuData imuData_{};
 
   realtime_tools::RealtimeBuffer<limxsdk::RobotState> robotstate_buffer_;

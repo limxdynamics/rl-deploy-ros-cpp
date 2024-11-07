@@ -93,6 +93,9 @@ bool PointfootHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh) {
     return false;
   }
 
+  // Resize the jointData_ vector to match the number of motors in the robot
+  jointData_.resize(robot_->getMotorNumber());
+
   // Initializing robot command instance, state buffer and imu buffer
   robotCmd_ = limxsdk::RobotCmd(robot_->getMotorNumber());
   robotstate_buffer_.writeFromNonRT(limxsdk::RobotState(robot_->getMotorNumber()));
@@ -253,10 +256,14 @@ bool PointfootHW::setupJoints() {
       joint_index = 1;
     else if (joint.first.find("knee") != std::string::npos)
       joint_index = 2;
+    else if (joint.first.find("wheel") != std::string::npos)
+      joint_index = 3;
+    else if (joint.first.find("ankle") != std::string::npos)
+      joint_index = 3;
     else
       continue;
 
-    int index = leg_index * 3 + joint_index;
+    int index = leg_index * robot_->getMotorNumber() / 2 + joint_index;
     hardware_interface::JointStateHandle state_handle(joint.first, &jointData_[index].pos_, &jointData_[index].vel_,
                                                       &jointData_[index].tau_);
     jointStateInterface_.registerHandle(state_handle);
