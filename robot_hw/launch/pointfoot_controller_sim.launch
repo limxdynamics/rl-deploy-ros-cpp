@@ -1,0 +1,22 @@
+<launch>
+  <!-- Pass the ROBOT_TYPE environment variable to ROS parameters -->
+  <param name="robot_type" value="$(env ROBOT_TYPE)" />
+
+  <arg name="plot"   default="false"/>
+
+  <param name="use_gazebo" value="true"/>
+
+  <rosparam file="$(find robot_controllers)/config/controllers.yaml" command="load"/>
+  <param name="policyFile" value="$(find robot_controllers)/config/pointfoot/$(env ROBOT_TYPE)/policy/policy.onnx"/>
+  <param name="robot_description" command="cat $(find robot_description)/pointfoot/$(env ROBOT_TYPE)/urdf/robot.urdf"/>
+  <rosparam file="$(find robot_controllers)/config/pointfoot/$(env ROBOT_TYPE)/params.yaml" command="load"/>
+  <rosparam file="$(find robot_hw)/config/robot_hw.yaml" command="load"/>
+  <rosparam file="$(find robot_hw)/config/joystick.yaml" command="load"/>
+  <node name="pointfoot_hw" pkg="robot_hw" type="pointfoot_node" respawn="false" clear_params="true" required="true" output="screen" args="127.0.0.1" />
+  <group ns="pointfoot_hw">
+    <node name="controller_loader" pkg="controller_manager" type="controller_manager"
+      output="screen" args="load
+      /controllers/pointfoot_controller
+    "/>
+  </group>
+</launch>
