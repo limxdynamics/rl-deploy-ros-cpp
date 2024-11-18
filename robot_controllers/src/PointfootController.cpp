@@ -69,23 +69,31 @@ void PointfootController::handleWalkMode() {
     jointPos(i) = hybridJointHandles_[i].getPosition();
     jointVel(i) = hybridJointHandles_[i].getVelocity();
   }
-
+  // in wheel mode, wheel joint actions differ from others
   for (size_t i = 0; i < hybridJointHandles_.size(); i++) {
-    scalar_t actionMin =
-        jointPos(i) - initJointAngles_(i, 0) +
-        (robotCfg_.controlCfg.damping * jointVel(i) - robotCfg_.controlCfg.user_torque_limit) / robotCfg_.controlCfg.stiffness;
-    scalar_t actionMax =
-        jointPos(i) - initJointAngles_(i, 0) +
-        (robotCfg_.controlCfg.damping * jointVel(i) + robotCfg_.controlCfg.user_torque_limit) / robotCfg_.controlCfg.stiffness;
-    actions_[i] = std::max(actionMin / robotCfg_.controlCfg.action_scale_pos,
-                           std::min(actionMax / robotCfg_.controlCfg.action_scale_pos, (scalar_t)actions_[i]));
-    scalar_t pos_des = actions_[i] * robotCfg_.controlCfg.action_scale_pos + initJointAngles_(i, 0);
-    hybridJointHandles_[i].setCommand(pos_des, 0, robotCfg_.controlCfg.stiffness, robotCfg_.controlCfg.damping,
-                                      0, 2);
-
-    lastActions_(i, 0) = actions_[i];
+    if (is_point_foot_ || (i + 1) % 4 != 0) {
+      scalar_t actionMin =
+          jointPos(i) - initJointAngles_(i, 0) +
+          (robotCfg_.controlCfg.damping * jointVel(i) - robotCfg_.controlCfg.user_torque_limit) / robotCfg_.controlCfg.stiffness;
+      scalar_t actionMax =
+          jointPos(i) - initJointAngles_(i, 0) +
+          (robotCfg_.controlCfg.damping * jointVel(i) + robotCfg_.controlCfg.user_torque_limit) / robotCfg_.controlCfg.stiffness;
+      actions_[i] = std::max(actionMin / robotCfg_.controlCfg.action_scale_pos,
+                            std::min(actionMax / robotCfg_.controlCfg.action_scale_pos, (scalar_t)actions_[i]));
+      scalar_t pos_des = actions_[i] * robotCfg_.controlCfg.action_scale_pos + initJointAngles_(i, 0);
+      hybridJointHandles_[i].setCommand(pos_des, 0, robotCfg_.controlCfg.stiffness, robotCfg_.controlCfg.damping,
+                                        0, 2);
+      lastActions_(i, 0) = actions_[i];
+    } else if (is_wheel_foot_) {
+      scalar_t actionMin = (jointVel(i) - wheelJointTorqueLimit_ / wheelJointDamping_);
+      scalar_t actionMax = (jointVel(i) + wheelJointTorqueLimit_ / wheelJointDamping_);
+      lastActions_(i, 0) = actions_[i];
+      actions_[i] = std::max(actionMin / wheelJointDamping_,
+                    std::min(actionMax / wheelJointDamping_, (scalar_t) actions_[i]));
+      scalar_t velocity_des = actions_[i] * wheelJointDamping_;
+      hybridJointHandles_[i].setCommand(0, velocity_des, 0, wheelJointDamping_, 0, 0);
+    }
   }
-
 }
 
 // Handle standing mode
@@ -200,6 +208,13 @@ bool PointfootController::loadRLCfg() {
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/user_cmd_scales/lin_vel_y", robotCfg_.userCmdCfg.linVel_y));
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/user_cmd_scales/ang_vel_yaw", robotCfg_.userCmdCfg.angVel_yaw));
 
+    if (is_wheel_foot_) {
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/init_state/default_joint_angle/wheel_R_Joint", initState["wheel_R_Joint"]));
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/init_state/default_joint_angle/wheel_L_Joint", initState["wheel_L_Joint"]));
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/control/wheel_joint_damping", wheelJointDamping_));
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/control/wheel_joint_torque_limit", wheelJointTorqueLimit_));
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/size/jointpos_idxs", jointPosIdxs_));
+    }
     if (error) {
       ROS_ERROR("Load parameters from ROS parameter server error!!!");
     }
@@ -293,9 +308,21 @@ void PointfootController::computeObservation() {
   vector_t obs(observationSize_);
   vector3_t scaled_commands = commandScaler * commands_;
   // Populate observation vector
+  vector_t jointPos_value = (jointPos - initJointAngles_) * robotCfg_.rlCfg.obsScales.dofPos;
+  vector_t jointPos_input;
+  // In WF, jointPos does not include wheel speed, index(3, 7) needs to be removed
+  if (is_wheel_foot_) {
+    jointPos_input.resize(jointPosIdxs_.size());
+    for (int i = 0; i < jointPosIdxs_.size(); i++){
+      jointPos_input(i) = jointPos_value(jointPosIdxs_[i]);
+    }
+  }
+  else {
+    jointPos_input = jointPos_value;
+  }
   obs << baseAngVel * robotCfg_.rlCfg.obsScales.angVel,
       projectedGravity,
-      (jointPos - initJointAngles_) * robotCfg_.rlCfg.obsScales.dofPos,
+      jointPos_input,
       jointVel * robotCfg_.rlCfg.obsScales.dofVel,
       actions,
       scaled_commands;

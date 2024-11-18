@@ -10,6 +10,20 @@ namespace robot_controller {
 
 // Initializes the controller.
 bool ControllerBase::init(hardware_interface::RobotHW *robot_hw, ros::NodeHandle &nh) {
+  // Retrieve the robot type from the environment variable "ROBOT_TYPE"
+  const char* value = ::getenv("ROBOT_TYPE");
+  if (value && strlen(value) > 0) {
+    robot_type_ = std::string(value);
+  } else {
+    ROS_ERROR("Error: Please set the ROBOT_TYPE using 'export ROBOT_TYPE=<robot_type>'.");
+    abort();
+  }
+
+  // Determine the specific robot configuration based on the robot type
+  is_point_foot_ = (robot_type_.find("PF") != std::string::npos);
+  is_wheel_foot_ = (robot_type_.find("WF") != std::string::npos);
+  is_sole_foot_  = (robot_type_.find("SF") != std::string::npos);
+
   if (!loadRLCfg()) {
     ROS_ERROR("Error in loadRLCfg");
   }

@@ -89,6 +89,8 @@ private:
   int actionsSize_; // Size of actions
   int observationSize_; // Size of observations
   float imu_orientation_offset[3]; // IMU orientation offset
+  float wheelJointDamping_, wheelJointTorqueLimit_;
+  std::vector<int> jointPosIdxs_;
   std::vector<tensor_element_t> actions_; // Actions
   std::vector<tensor_element_t> observations_; // Observations
 };
