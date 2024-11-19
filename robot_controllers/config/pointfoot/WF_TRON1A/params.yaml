@@ -43,8 +43,8 @@ PointfootCfg:
       dof_vel: 0.05
 
   size:
-    actions_size: 8 # 6
-    observations_size: 31 # 27
+    actions_size: 8
+    observations_size: 31
     commands_size: 3
     jointpos_idxs: [0, 1, 2, 4, 5, 6]
 
