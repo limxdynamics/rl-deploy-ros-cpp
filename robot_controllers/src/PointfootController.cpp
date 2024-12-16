@@ -92,6 +92,14 @@ void PointfootController::handleWalkMode() {
                     std::min(actionMax / wheelJointDamping_, (scalar_t) actions_[i]));
       scalar_t velocity_des = actions_[i] * wheelJointDamping_;
       hybridJointHandles_[i].setCommand(0, velocity_des, 0, wheelJointDamping_, 0, 0);
+    } else if (is_sole_foot_) {
+      scalar_t actionMin = (jointVel(i) - ankleJointTorqueLimit_ / ankleJointDamping_);
+      scalar_t actionMax = (jointVel(i) + ankleJointTorqueLimit_ / ankleJointDamping_);
+      lastActions_(i, 0) = actions_[i];
+      actions_[i] = std::max(actionMin / ankleJointDamping_,
+                    std::min(actionMax / ankleJointDamping_, (scalar_t) actions_[i]));
+      scalar_t velocity_des = actions_[i] * ankleJointDamping_;
+      hybridJointHandles_[i].setCommand(0, velocity_des, 0, ankleJointDamping_, 0, 0);
     }
   }
 }
@@ -214,6 +222,11 @@ bool PointfootController::loadRLCfg() {
       error += static_cast<int>(!nh_.getParam("/PointfootCfg/control/wheel_joint_damping", wheelJointDamping_));
       error += static_cast<int>(!nh_.getParam("/PointfootCfg/control/wheel_joint_torque_limit", wheelJointTorqueLimit_));
       error += static_cast<int>(!nh_.getParam("/PointfootCfg/size/jointpos_idxs", jointPosIdxs_));
+    } else if (is_sole_foot_) {
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/init_state/default_joint_angle/ankle_L_Joint", initState["ankle_L_Joint"]));
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/init_state/default_joint_angle/ankle_R_Joint", initState["ankle_R_Joint"]));
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/control/ankle_joint_damping", ankleJointDamping_));
+      error += static_cast<int>(!nh_.getParam("/PointfootCfg/control/ankle_joint_torque_limit", ankleJointTorqueLimit_));
     }
     if (error) {
       ROS_ERROR("Load parameters from ROS parameter server error!!!");
