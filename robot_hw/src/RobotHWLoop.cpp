@@ -10,8 +10,42 @@ namespace hw {
 RobotHWLoop::RobotHWLoop(ros::NodeHandle &nh, ros::NodeHandle &robot_hw_nh, std::shared_ptr<RobotHW> hardware_interface)
     : hardwareInterface_(std::move(hardware_interface)), loopRunning_(true) {
   controllerManager_.reset(new controller_manager::ControllerManager(hardwareInterface_.get(), robot_hw_nh));
+}
 
-  // Load ROS parameters
+void RobotHWLoop::StartControlLoop(ros::NodeHandle& nh) {
+
+  std::string controller_name;
+
+  const char* value = ::getenv("ROBOT_TYPE");
+  if (value && strlen(value) > 0) {
+    robot_type_ = std::string(value);
+  } else {
+    ROS_ERROR("Error: Please set the ROBOT_TYPE using 'export ROBOT_TYPE=<robot_type>'.");
+    abort();
+  }
+
+  // Determine the specific robot configuration based on the robot type
+  is_point_foot_ = (robot_type_.find("PF") != std::string::npos);
+  is_wheel_foot_ = (robot_type_.find("WF") != std::string::npos);
+  is_sole_foot_  = (robot_type_.find("SF") != std::string::npos);
+
+  if (is_point_foot_)
+  {
+    controller_name = "/controllers/pointfoot_controller";
+  }
+  if (is_wheel_foot_)
+  {
+    controller_name = "/controllers/wheelfoot_controller";
+  }
+  if (is_sole_foot_)
+  {
+    controller_name = "/controllers/solefoot_controller";
+  }
+
+  std::cerr << "controller_name = " << controller_name << std::endl;
+  controllerManager_->loadController(controller_name);
+
+  // Load ros params
   int error = 0;
 
   loopHz_ = nh.param<double>("/robot_hw/loop_frequency", 500);

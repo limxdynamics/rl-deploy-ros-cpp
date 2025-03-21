@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
 
     // Create and initialize RobotHWLoop instance
     hw::RobotHWLoop loop(nh, robot_hw_nh, hw);
+    loop.StartControlLoop(robot_hw_nh);
 
     // Check if Gazebo should be used
     bool use_gazebo;

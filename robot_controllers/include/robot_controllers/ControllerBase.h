@@ -148,6 +148,9 @@ public:
   // Load RL configuration settings
   virtual bool loadRLCfg() { return false; }
 
+  // Compute encoder for the controller
+  virtual void computeEncoder() {}
+  
   // Compute actions for the controller
   virtual void computeActions() {}
 

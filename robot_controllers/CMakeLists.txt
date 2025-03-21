@@ -55,6 +55,8 @@ link_directories(${CATKIN_DEVEL_PREFIX}/lib)
 add_library(${PROJECT_NAME} SHARED
   src/ControllerBase.cpp
   src/PointfootController.cpp
+  src/WheelfootController.cpp
+  src/SolefootController.cpp
 )
 
 # Link libraries to the target

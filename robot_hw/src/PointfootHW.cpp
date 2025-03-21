@@ -22,7 +22,7 @@ bool PointfootHW::startBipedController() {
   }
 
   for (const auto& controller : list_controllers.response.controller) {
-    if (controller.name == CONTROLLER_NAME && controller.state == "running") {
+    if (controller.name == controller_name_ && controller.state == "running") {
       ROS_WARN("Controller %s is already running, skipping start.", controller.name.c_str());
       return false;
     }
@@ -30,7 +30,7 @@ bool PointfootHW::startBipedController() {
 
   // Creating a message to switch controllers
   controller_manager_msgs::SwitchController sw;
-  sw.request.start_controllers.push_back(CONTROLLER_NAME);
+  sw.request.start_controllers.push_back(controller_name_);
   sw.request.start_asap = false;
   sw.request.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
   sw.request.timeout = ros::Duration(3.0).toSec();
@@ -53,7 +53,7 @@ bool PointfootHW::startBipedController() {
 bool PointfootHW::stopBipedController() {
   // Creating a message to switch controllers
   controller_manager_msgs::SwitchController sw;
-  sw.request.stop_controllers.push_back(CONTROLLER_NAME);
+  sw.request.stop_controllers.push_back(controller_name_);
   sw.request.start_asap = false;
   sw.request.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
   sw.request.timeout = ros::Duration(3.0).toSec();
@@ -87,6 +87,31 @@ bool PointfootHW::stopBipedController() {
 bool PointfootHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh) {
   // Initializing the legged robot instance
   robot_ = limxsdk::PointFoot::getInstance();
+  
+  const char* value = ::getenv("ROBOT_TYPE");
+  if (value && strlen(value) > 0) {
+    robot_type_ = std::string(value);
+  } else {
+    ROS_ERROR("Error: Please set the ROBOT_TYPE using 'export ROBOT_TYPE=<robot_type>'.");
+    abort();
+  }
+  // Determine the specific robot configuration based on the robot type
+  is_point_foot_ = (robot_type_.find("PF") != std::string::npos);
+  is_wheel_foot_ = (robot_type_.find("WF") != std::string::npos);
+  is_sole_foot_  = (robot_type_.find("SF") != std::string::npos);
+
+  if (is_point_foot_)
+  {
+    controller_name_ = "/controllers/pointfoot_controller";
+  }
+  if (is_wheel_foot_)
+  {
+    controller_name_ = "/controllers/wheelfoot_controller";
+  }
+  if (is_sole_foot_)
+  {
+    controller_name_ = "/controllers/solefoot_controller";
+  }
 
   // Initializing the RobotHW base class
   if (!RobotHW::init(root_nh, robot_hw_nh)) {

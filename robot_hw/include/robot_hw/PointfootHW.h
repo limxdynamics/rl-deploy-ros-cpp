@@ -78,6 +78,13 @@ private:
   ros::ServiceClient list_controllers_client_;
 
   limxsdk::PointFoot *robot_;
+
+  std::string controller_name_;
+
+  std::string robot_type_;      // Type of the robot (e.g., point foot, wheel foot, sole foot)
+  bool is_point_foot_{false};   // Indicates if the robot has a point foot configuration
+  bool is_wheel_foot_{false};   // Indicates if the robot has a wheel foot configuration
+  bool is_sole_foot_{false};    // Indicates if the robot has a sole foot configuration
 };
 
 } // namespace hw

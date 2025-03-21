@@ -35,6 +35,8 @@ class RobotHWLoop {  // NOLINT(cppcoreguidelines-special-member-functions)
    */
   void Update();
 
+  void StartControlLoop(ros::NodeHandle& nh);
+
  protected:
   double cycleTimeErrorThreshold_, loopHz_;
   std::thread loopThread_;
@@ -43,6 +45,10 @@ class RobotHWLoop {  // NOLINT(cppcoreguidelines-special-member-functions)
   Clock::time_point lastTime_;
   std::shared_ptr<controller_manager::ControllerManager> controllerManager_;
   std::shared_ptr<RobotHW> hardwareInterface_;
+  std::string robot_type_;      // Type of the robot (e.g., point foot, wheel foot, sole foot)
+  bool is_point_foot_{false};   // Indicates if the robot has a point foot configuration
+  bool is_wheel_foot_{false};   // Indicates if the robot has a wheel foot configuration
+  bool is_sole_foot_{false};    // Indicates if the robot has a sole foot configuration
 };
 
 }  // namespace hw

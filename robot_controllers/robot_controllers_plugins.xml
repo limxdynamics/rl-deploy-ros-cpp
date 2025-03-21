@@ -5,4 +5,18 @@
             The pointfoot controller.
         </description>
     </class>
+
+    <class name="robot_controller/WheelfootController" type="robot_controller::WheelfootController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The wheelfoot controller.
+        </description>
+    </class>
+
+    <class name="robot_controller/SolefootController" type="robot_controller::SolefootController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The solefoot controller.
+        </description>
+    </class>
 </library>

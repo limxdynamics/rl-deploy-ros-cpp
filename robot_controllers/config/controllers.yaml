@@ -1,3 +1,9 @@
 controllers:
   pointfoot_controller:
     type: robot_controller/PointfootController
+  
+  wheelfoot_controller:
+    type: robot_controller/WheelfootController
+
+  solefoot_controller:
+    type: robot_controller/SolefootController
