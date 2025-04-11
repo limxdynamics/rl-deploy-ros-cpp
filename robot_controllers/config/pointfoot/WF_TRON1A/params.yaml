@@ -28,8 +28,9 @@ PointfootCfg:
     damping: 2.0
     wheel_joint_damping: 0.8
     wheel_joint_torque_limit: 40
-    action_scale_pos: 0.5
-    decimation: 10
+    action_scale_pos: 0.25
+    action_scale_vel: 8
+    decimation: 8
     user_torque_limit: 80
 
   normalization:
