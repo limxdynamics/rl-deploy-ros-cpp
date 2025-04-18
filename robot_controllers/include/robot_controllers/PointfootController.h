@@ -103,7 +103,6 @@ private:
   int obsHistoryLength_; // Size of history observations
   int encoderInputSize_, encoderOutputSize_; // Input and output size of encoder
   float imu_orientation_offset[3]; // IMU orientation offset
-  float wheelJointDamping_, wheelJointTorqueLimit_, ankleJointDamping_, ankleJointTorqueLimit_;
   std::vector<int> jointPosIdxs_;
   std::vector<tensor_element_t> actions_; // Actions
   std::vector<tensor_element_t> observations_; // Observations

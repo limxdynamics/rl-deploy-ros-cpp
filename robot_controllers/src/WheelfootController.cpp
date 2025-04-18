@@ -34,9 +34,13 @@ void WheelfootController::starting(const ros::Time &time) {
 void WheelfootController::update(const ros::Time &time, const ros::Duration &period) {
   switch (mode_) {
     case Mode::STAND:
+    initJointAngles_(1, 0) = -0.9;
+    initJointAngles_(5, 0) = 0.9;
       handleStandMode();
       break;
     case Mode::WALK:
+    initJointAngles_(1, 0) = -0.0;
+    initJointAngles_(5, 0) = 0.0;
       handleWalkMode();
       break;
   }
@@ -54,6 +58,7 @@ void WheelfootController::handleWalkMode() {
   }
   if (loopCount_ % robotCfg_.controlCfg.decimation == 0) {
     computeObservation();
+    computeEncoder();
     computeActions();
 
     // Limit action range
@@ -100,11 +105,16 @@ void WheelfootController::handleWalkMode() {
 void WheelfootController::handleStandMode() {
   if (standPercent_ < 1) {
     for (int j = 0; j < hybridJointHandles_.size(); j++) {
-      scalar_t pos_des = defaultJointAngles_[j] * (1 - standPercent_) + initJointAngles_[j] * standPercent_;
-      hybridJointHandles_[j].setCommand(pos_des, 0, robotCfg_.controlCfg.stiffness,
-                                        robotCfg_.controlCfg.damping, 0, 2);
+      if ((j + 1) % 4 != 0) {
+        scalar_t pos_des = defaultJointAngles_[j] * (1 - standPercent_) + initJointAngles_[j] * standPercent_;
+        hybridJointHandles_[j].setCommand(pos_des, 0, robotCfg_.controlCfg.stiffness,
+                                          robotCfg_.controlCfg.damping, 0, 2);
+      }
+      else {
+        hybridJointHandles_[j].setCommand(0, 0.0, 0, wheelJointDamping_, 0, 0);
+      }
     }
-    standPercent_ += 1 / (standDuration_ * loopFrequency_);
+    standPercent_ += 3 / (standDuration_ * loopFrequency_);
   } else {
     mode_ = Mode::WALK;
   }
@@ -116,6 +126,12 @@ bool WheelfootController::loadModel() {
   std::string policyModelPath;
   if (!nh_.getParam("/policyFile", policyModelPath)) {
     ROS_ERROR("Failed to retrieve policy path from the parameter server!");
+    return false;
+  }
+
+  std::string encoderModelPath;
+  if (!nh_.getParam("/encoderFile", encoderModelPath)) {
+    ROS_ERROR("Failed to retrieve encoder path from the parameter server!");
     return false;
   }
 
@@ -165,6 +181,42 @@ bool WheelfootController::loadModel() {
     ROS_INFO("Shape: [%s]", shapeString.c_str());
   }
 
+  // Encoder session
+  ROS_INFO("Loading encoder from: %s", encoderModelPath.c_str());
+  encoderSessionPtr_ = std::make_unique<Ort::Session>(*onnxEnvPrt_, encoderModelPath.c_str(), sessionOptions);
+  encoderInputNames_.clear();
+  encoderOutputNames_.clear();
+  encoderInputShapes_.clear();
+  encoderOutputShapes_.clear();
+  for (size_t i = 0; i < encoderSessionPtr_->GetInputCount(); i++) {
+    encoderInputNames_.push_back(encoderSessionPtr_->GetInputName(i, allocator));
+    encoderInputShapes_.push_back(encoderSessionPtr_->GetInputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape());
+    ROS_INFO("GetInputName: %s", encoderSessionPtr_->GetInputName(i, allocator));
+    std::vector<int64_t> shape = encoderSessionPtr_->GetInputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape();
+    std::string shapeString;
+    for (size_t j = 0; j < shape.size(); ++j) {
+      shapeString += std::to_string(shape[j]);
+      if (j != shape.size() - 1) {
+        shapeString += ", ";
+      }
+    }
+    ROS_INFO("Shape: [%s]", shapeString.c_str());
+  }
+  for (size_t i = 0; i < encoderSessionPtr_->GetOutputCount(); i++) {
+    encoderOutputNames_.push_back(encoderSessionPtr_->GetOutputName(i, allocator));
+    ROS_INFO("GetOutputName: %s", encoderSessionPtr_->GetOutputName(i, allocator));
+    encoderOutputShapes_.push_back(encoderSessionPtr_->GetOutputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape());
+    std::vector<int64_t> shape = encoderSessionPtr_->GetOutputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape();
+    std::string shapeString;
+    for (size_t j = 0; j < shape.size(); ++j) {
+      shapeString += std::to_string(shape[j]);
+      if (j != shape.size() - 1) {
+        shapeString += ", ";
+      }
+    }
+    ROS_INFO("Shape: [%s]", shapeString.c_str());
+  }
+
   ROS_INFO("Successfully loaded ONNX models!");
   return true;
 }
@@ -200,6 +252,9 @@ bool WheelfootController::loadRLCfg() {
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/normalization/obs_scales/dof_vel", obsScales.dofVel));
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/size/actions_size", actionsSize_));
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/size/observations_size", observationSize_));
+    error += static_cast<int>(!nh_.getParam("/PointfootCfg/size/obs_history_length", obsHistoryLength_));
+    error += static_cast<int>(!nh_.getParam("/PointfootCfg/size/encoder_output_size", encoderOutputSize_));
+
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/imu_orientation_offset/yaw", imu_orientation_offset[0]));
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/imu_orientation_offset/pitch", imu_orientation_offset[1]));
     error += static_cast<int>(!nh_.getParam("/PointfootCfg/imu_orientation_offset/roll", imu_orientation_offset[2]));
@@ -220,11 +275,15 @@ bool WheelfootController::loadRLCfg() {
     if (standDuration_ <= 0.5) {
       ROS_ERROR("standDuration_ must be larger than 0.5!!!");
     }
+
+    encoderInputSize_ = obsHistoryLength_ * observationSize_;
     robotCfg_.print();
 
     // Resize vectors.
     actions_.resize(actionsSize_);
     observations_.resize(observationSize_);
+    proprioHistoryVector_.resize(observationSize_ * obsHistoryLength_);
+    encoderOut_.resize(encoderOutputSize_);
     lastActions_.resize(actionsSize_);
 
     // Initialize vectors.
@@ -240,30 +299,6 @@ bool WheelfootController::loadRLCfg() {
   }
 
   return true;
-}
-
-// Computes actions using the policy model.
-void WheelfootController::computeActions() {
-  // Create input tensor object
-  Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator,
-                                                          OrtMemType::OrtMemTypeDefault);
-  std::vector<Ort::Value> inputValues;
-  std::vector<tensor_element_t> combined_obs;
-  for (const auto &item : observations_) {
-    combined_obs.push_back(item);
-  }
-  inputValues.push_back(
-      Ort::Value::CreateTensor<tensor_element_t>(memoryInfo, combined_obs.data(), combined_obs.size(),
-                                                  policyInputShapes_[0].data(), policyInputShapes_[0].size()));
-  // Run inference
-  Ort::RunOptions runOptions;
-  std::vector<Ort::Value> outputValues = policySessionPtr_->Run(runOptions, policyInputNames_.data(),
-                                                                inputValues.data(), 1, policyOutputNames_.data(),
-                                                                1);
-
-  for (size_t i = 0; i < actionsSize_; i++) {
-    actions_[i] = *(outputValues[0].GetTensorMutableData<tensor_element_t>() + i);
-  }
 }
 
 void WheelfootController::computeObservation() {
@@ -318,8 +353,24 @@ void WheelfootController::computeObservation() {
       projectedGravity,
       jointPos_input,
       jointVel * robotCfg_.rlCfg.obsScales.dofVel,
-      actions,
-      scaled_commands;
+      actions;
+      // remove scaled_commands;
+
+  if (isfirstRecObs_)
+  {
+    int64_t inputSize = std::accumulate(encoderInputShapes_[0].begin(), encoderInputShapes_[0].end(),
+                                        static_cast<int64_t>(1), std::multiplies<int64_t>());
+    proprioHistoryBuffer_.resize(inputSize);
+    for (size_t i = 0; i < obsHistoryLength_; i++)
+    {
+        proprioHistoryBuffer_.segment(i * observationSize_,
+                                        observationSize_) = obs.cast<tensor_element_t>();
+    }
+    isfirstRecObs_ = false;
+  }
+  proprioHistoryBuffer_.head(proprioHistoryBuffer_.size() - observationSize_) = proprioHistoryBuffer_.tail(
+      proprioHistoryBuffer_.size() - observationSize_);
+  proprioHistoryBuffer_.tail(observationSize_) = obs.cast<tensor_element_t>();
 
   // Update observation, scaled commands, and proprioceptive history vector
   for (size_t i = 0; i < obs.size(); i++) {
@@ -328,6 +379,10 @@ void WheelfootController::computeObservation() {
   for (size_t i = 0; i < scaled_commands_.size(); i++) {
     scaled_commands_[i] = static_cast<tensor_element_t>(scaled_commands(i));
   }
+  for (size_t i = 0; i < proprioHistoryBuffer_.size(); i++)
+  {
+      proprioHistoryVector_[i] = static_cast<tensor_element_t>(proprioHistoryBuffer_(i));
+  }
 
   // Limit observation range
   scalar_t obsMin = -robotCfg_.rlCfg.clipObs;
@@ -335,6 +390,59 @@ void WheelfootController::computeObservation() {
   std::transform(observations_.begin(), observations_.end(), observations_.begin(),
                  [obsMin, obsMax](scalar_t x)
                  { return std::max(obsMin, std::min(obsMax, x)); });
+}
+
+void WheelfootController::computeEncoder() {
+  Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator,
+                                                          OrtMemType::OrtMemTypeDefault);
+  std::vector<Ort::Value> inputValues;
+  inputValues.push_back(Ort::Value::CreateTensor<tensor_element_t>(memoryInfo, proprioHistoryBuffer_.data(),
+                                                                    proprioHistoryBuffer_.size(),
+                                                                    encoderInputShapes_[0].data(),
+                                                                    encoderInputShapes_[0].size()));
+
+  Ort::RunOptions runOptions;
+  std::vector<Ort::Value> outputValues =
+      encoderSessionPtr_->Run(runOptions, encoderInputNames_.data(), inputValues.data(), 1,
+                              encoderOutputNames_.data(), 1);
+  for (int i = 0; i < encoderOutputSize_; i++)
+  {
+      encoderOut_[i] = *(outputValues[0].GetTensorMutableData<tensor_element_t>() + i);
+  }
+
+}
+
+// Computes actions using the policy model.
+void WheelfootController::computeActions() {
+  // Create input tensor object
+  Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator,
+                                                          OrtMemType::OrtMemTypeDefault);
+  std::vector<Ort::Value> inputValues;
+  std::vector<tensor_element_t> combined_obs;
+  for (const auto &item : encoderOut_)
+  {
+    combined_obs.push_back(item);
+  }
+  for (const auto &item : observations_) {
+    combined_obs.push_back(item);
+  }
+  for (int i = 0; i < scaled_commands_.size(); i++)
+  {
+    combined_obs.push_back(scaled_commands_[i]);
+  }
+
+  inputValues.push_back(
+      Ort::Value::CreateTensor<tensor_element_t>(memoryInfo, combined_obs.data(), combined_obs.size(),
+                                                  policyInputShapes_[0].data(), policyInputShapes_[0].size()));
+  // Run inference
+  Ort::RunOptions runOptions;
+  std::vector<Ort::Value> outputValues = policySessionPtr_->Run(runOptions, policyInputNames_.data(),
+                                                                inputValues.data(), 1, policyOutputNames_.data(),
+                                                                1);
+
+  for (size_t i = 0; i < actionsSize_; i++) {
+    actions_[i] = *(outputValues[0].GetTensorMutableData<tensor_element_t>() + i);
+  }
 }
 
 void WheelfootController::cmdVelCallback(const geometry_msgs::TwistConstPtr &msg) {

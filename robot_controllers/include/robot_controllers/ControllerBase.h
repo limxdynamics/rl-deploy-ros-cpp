@@ -107,8 +107,23 @@ struct RobotCfg {
     }
   };
 
+  // gait settings
+  struct GaitCfg
+  {
+    float frequencies;
+    float swing_height;
+    void print(const char *tag)
+    {
+      ROS_INFO_STREAM("=======Start GaitCfg========");
+      ROS_INFO_STREAM("frequencies: " << frequencies);
+      ROS_INFO_STREAM("swing_height: " << swing_height);
+      ROS_INFO_STREAM("=======end GaitCfg========\n");
+    }
+  };
+
   RlCfg rlCfg;                   // RL configuration settings
   UserCmdCfg userCmdCfg;         // User command configuration settings
+  GaitCfg gaitCfg;
   std::map<std::string, double> initState;  // Initial state settings
   ControlCfg controlCfg;         // Control configuration settings
 

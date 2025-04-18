@@ -51,6 +51,9 @@ protected:
   // Compute observations for the controller
   void computeObservation() override;
 
+  // Compute encoder for the controller
+  void computeEncoder() override;
+
   // Handle walk mode
   void handleWalkMode() override;
 
@@ -59,6 +62,12 @@ protected:
 
   // Callback function for command velocity
   void cmdVelCallback(const geometry_msgs::TwistConstPtr &msg) override;
+
+  // compute gait
+  vector_t handleGait();
+
+  // compute gait clock
+  vector_t handleGaitClock(vector_t &curr_gait);
 
   // Get the robot configuration
   RobotCfg &getRobotCfg() override { return robotCfg_; }
@@ -75,6 +84,7 @@ private:
 
   // ONNX session pointers
   std::unique_ptr<Ort::Session> policySessionPtr_;
+  std::unique_ptr<Ort::Session> encoderSessionPtr_;
 
   // Names and shapes of inputs and outputs for ONNX sessions
   std::vector<std::vector<int64_t>> policyInputShapes_;
@@ -82,17 +92,34 @@ private:
   std::vector<const char *> policyInputNames_;
   std::vector<const char *> policyOutputNames_;
 
+  std::vector<std::vector<int64_t>> encoderInputShapes_;
+  std::vector<std::vector<int64_t>> encoderOutputShapes_;
+  std::vector<const char *> encoderInputNames_;
+  std::vector<const char *> encoderOutputNames_;
+
+  std::vector<tensor_element_t> proprioHistoryVector_;
+  Eigen::Matrix<tensor_element_t, Eigen::Dynamic, 1> proprioHistoryBuffer_;
+
   vector3_t baseLinVel_; // Base linear velocity
   vector3_t basePosition_; // Base position
   vector_t lastActions_; // Last actions
+  int commandSizeSolefoot_;
+  vector_t commandSolefoot_; // command for solefoot(size=5)
+  vector_t scaledCommandSolefoot_; // scaled command for solefoot(size=5)
 
   int actionsSize_; // Size of actions
   int observationSize_; // Size of observations
+  int obsHistoryLength_; // Size of history observations
+  int encoderInputSize_, encoderOutputSize_; // Input and output size of encoder
   float imu_orientation_offset[3]; // IMU orientation offset
   float ankleJointDamping_, ankleJointTorqueLimit_;
   std::vector<int> jointPosIdxs_;
   std::vector<tensor_element_t> actions_; // Actions
   std::vector<tensor_element_t> observations_; // Observations
+  std::vector<tensor_element_t> encoderOut_;  // Encoder
+  
+  double gait_index_{0.0};
+  bool isfirstRecObs_{true};
 };
 
 } // namespace robot_controller
