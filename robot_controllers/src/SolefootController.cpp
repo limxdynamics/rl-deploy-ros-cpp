@@ -342,7 +342,7 @@ void SolefootController::computeObservation() {
 
   // Define command scaler and observation vector
   vector_t commandScalerVal(commandSizeSolefoot_);
-  commandScalerVal << robotCfg_.userCmdCfg.linVel_x, robotCfg_.userCmdCfg.linVel_y, robotCfg_.userCmdCfg.angVel_yaw; //, 1.0, 1.0;
+  commandScalerVal << robotCfg_.userCmdCfg.linVel_x, robotCfg_.userCmdCfg.linVel_y, robotCfg_.userCmdCfg.angVel_yaw, 1.0, 1.0;
   // matrix_t commandScaler = Eigen::DiagonalMatrix<scalar_t, 3>(robotCfg_.userCmdCfg.linVel_x,
   //                                                             robotCfg_.userCmdCfg.linVel_y,
   //                                                             robotCfg_.userCmdCfg.angVel_yaw);
@@ -476,8 +476,8 @@ void SolefootController::cmdVelCallback(const geometry_msgs::TwistConstPtr &msg)
 
   // Set angular z velocity.
   commandSolefoot_(2) = (msg->angular.z > 1.0 ? 1.0 : (msg->angular.z < -1.0 ? -1.0 : msg->angular.z));
-  // commandSolefoot_(3) = 0.0;
-  // commandSolefoot_(4) = 0.0;
+  commandSolefoot_(3) = 0.0;
+  commandSolefoot_(4) = 0.0;
 }
 
 } // namespace
