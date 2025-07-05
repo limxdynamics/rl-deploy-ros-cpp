@@ -15,7 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(catkin REQUIRED 
   COMPONENTS
   roscpp
-  pointfoot_sdk_lowlevel
+  limxsdk_lowlevel
   robot_common
   robot_description
   hardware_interface
@@ -31,7 +31,7 @@ catkin_package(
   ${PROJECT_NAME}
   CATKIN_DEPENDS
   roscpp
-  pointfoot_sdk_lowlevel
+  limxsdk_lowlevel
   robot_common
   robot_description
   hardware_interface
@@ -61,7 +61,7 @@ add_executable(pointfoot_node
 target_link_libraries(pointfoot_node
         ${catkin_LIBRARIES}  # Link with catkin libraries
         ${urdfdom_LIBRARIES}
-        pointfoot_sdk_lowlevel
+        limxsdk_lowlevel
         pthread
 )
 

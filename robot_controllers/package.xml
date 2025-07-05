@@ -10,7 +10,7 @@
     <depend>roscpp</depend>
     <depend>controller_interface</depend>
     <depend>angles</depend>
-    <depend>pointfoot_sdk_lowlevel</depend>
+    <depend>limxsdk_lowlevel</depend>
     <depend>robot_common</depend>
     <depend>robot_description</depend>
     <build_depend>pluginlib</build_depend>

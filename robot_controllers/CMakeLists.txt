@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(catkin REQUIRED 
   COMPONENTS
   roscpp
-  pointfoot_sdk_lowlevel
+  limxsdk_lowlevel
   robot_common
   robot_description
   controller_interface
@@ -34,7 +34,7 @@ catkin_package(
   ${PROJECT_NAME}
   CATKIN_DEPENDS
   roscpp
-  pointfoot_sdk_lowlevel
+  limxsdk_lowlevel
   robot_common
   robot_description
   controller_interface
@@ -61,7 +61,7 @@ add_library(${PROJECT_NAME} SHARED
 
 # Link libraries to the target
 target_link_libraries(${PROJECT_NAME}
-  pointfoot_sdk_lowlevel
+  limxsdk_lowlevel
   ${catkin_LIBRARIES}  # Link with catkin libraries
   onnxruntime          # Link with onnxruntime library
 )

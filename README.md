@@ -56,7 +56,7 @@
 - 下载运动控制开发接口：
     ```Bash
     cd ~/limx_ws/src
-    git clone https://github.com/limxdynamics/pointfoot-sdk-lowlevel.git
+    git clone https://github.com/limxdynamics/limxsdk-lowlevel.git
     ```
     
 - 下载Gazebo仿真器：
