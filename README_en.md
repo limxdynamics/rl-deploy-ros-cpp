@@ -1,11 +1,11 @@
-# 简体中文 | [English](README_en.md)
-# 训练结果部署
+# English | [中文](README.md)
+# Deployment of Training Results
 
 
 
-## 1. 部署环境配置
+## 1. Deployment Environment Configuration
 
-- 安装ROS Noetic：我们推荐在Ubuntu 20.04操作系统上建立基于ROS Noetic的算法开发环境。ROS提供了一系列工具和库，如核心库、通信库和仿真工具（如Gazebo），极大地便利了机器人算法的开发、测试和部署。这些资源为用户提供了一个丰富而完整的算法开发环境。ROS Noetic 安装请参考文档：https://wiki.ros.org/noetic/Installation/Ubuntu ，选择“ros-noetic-desktop-full”进行安装。ROS Noetic 安装完成后，Bash终端输入以下Shell命令，安装开发环境所依赖的库：
+- Install ROS Noetic: Set up a ROS Noetic-based algorithm Development Environment on the Ubuntu 20.04 operating system. For installation, please refer to the documentation: https://docs.ros.org/en/noetic/Installation/Ubuntu-Install-Debians.html, and choose "ros-noetic-desktop" for installation. After the installation of ROS Noetic is completed, enter the following Shell commands in the Bash end point to install the libraries required by the Development Environment:
 
     ```bash
     sudo apt-get update
@@ -30,7 +30,7 @@
 
     
 
-- 安装onnxruntime依赖，下载连接：https://github.com/microsoft/onnxruntime/releases/tag/v1.10.0  。请您根据自己的操作系统和平台选择合适版本下载。如在Ubuntu 20.04 x86_64，请按下面步骤进行安装：
+- Install the onnxruntime dependency, download link:https://github.com/microsoft/onnxruntime/releases/tag/v1.10.0. Please choose the appropriate version to download according to your operating system and platform. For example, on Ubuntu 20.04 x86_64, please follow the steps below for installation:
   
     ```Bash
     wget https://github.com/microsoft/onnxruntime/releases/download/v1.10.0/onnxruntime-linux-x64-1.10.0.tgz
@@ -43,56 +43,54 @@
 
 
 
-## 2. 创建工作空间
+## 2. Create Workspace
 
-可以按照以下步骤，创建一个RL部署开发工作空间：
-
-- 打开一个Bash终端。
-
-- 创建一个新目录来存放工作空间。例如，可以在用户的主目录下创建一个名为“limx_ws”的目录：
+You can create an RL deployment development workspace by following these steps:
+- Open a Bash end point.
+- Create a new directory to store the workspace. For example, you can create a directory named "limx_ws" under the user's home directory:
     ```Bash
     mkdir -p ~/limx_ws/src
     ```
     
-- 下载运动控制开发接口：
+- Download the Motion Control Development Interface:
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/limxsdk-lowlevel.git
     ```
     
-- 下载Gazebo仿真器：
+- Download Gazebo Simulator:
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/pointfoot-gazebo-ros.git
     ```
     
-- 下载机器人模型描述文件
+- Download the robot model description file
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/robot-description.git
     ```
     
-- 下载可视化工具
+- Download Visualization Tool
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/robot-visualization.git
     ```
     
-- 下载RL部署源码：
+- Download RL deployment source code:
     ```Bash
     cd ~/limx_ws/src
     git clone https://github.com/limxdynamics/rl-deploy-ros-cpp.git
     ```
     
-- 编译工程：
+- Compile Project:
     ```Bash
     cd ~/limx_ws
     catkin_make install
     ```
 
-- 选择机器人类型
+- Select robot type
 
-  - 通过 Shell 命令 `tree -L 1 src/robot-description/pointfoot ` 列出可用的机器人类型：
+  - List available robot types via the Shell command tree -L 1 src/robot-description/pointfoot : 
   
     ```
     src/robot-description/pointfoot
@@ -105,15 +103,15 @@
     └── WF_TRON1A
     ```
   
-  - 以`PF_P441C`（请根据实际机器人类型进行替换）为例，设置机器人型号类型：
+  - TakingPF_P441C (please replace it according to the actual robot type) as an example, set the robot model type:
   
     ```
     echo 'export ROBOT_TYPE=PF_P441C' >> ~/.bashrc && source ~/.bashrc
     ```
   
-- 运行仿真
+- Run Simulation
 
-  通过运行Shell命令启动Gazebo仿真器，然后在仿真器窗口中按 `Ctrl + Shift + R`，机器人将开始移动。您还可以通过将 `Robot Steering` 插件的发布主题设置为 `/cmd_vel` 来控制机器人的行走。
+    Start the Gazebo simulator by running the Shell command, then press `Ctrl + Shift + R` in the simulator window to start the robot moving. You can also control the robot's movement by setting the publish topic of the `Robot Steering` plugin to `/cmd_vel`.
   
   
   ```
