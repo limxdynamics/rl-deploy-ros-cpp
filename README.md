@@ -61,7 +61,7 @@ You can create an RL deployment development workspace by following these steps:
 - Download Gazebo Simulator:
     ```Bash
     cd ~/limx_ws/src
-    git clone https://github.com/limxdynamics/pointfoot-gazebo-ros.git
+    git clone https://github.com/limxdynamics/tron1-gazebo-ros.git
     ```
     
 - Download the robot model description file
@@ -79,7 +79,7 @@ You can create an RL deployment development workspace by following these steps:
 - Download RL deployment source code:
     ```Bash
     cd ~/limx_ws/src
-    git clone https://github.com/limxdynamics/rl-deploy-ros-cpp.git
+    git clone https://github.com/limxdynamics/tron1-rl-deploy-ros.git
     ```
     
 - Compile Project:

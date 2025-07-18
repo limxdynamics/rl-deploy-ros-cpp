@@ -63,7 +63,7 @@
 - 下载Gazebo仿真器：
     ```Bash
     cd ~/limx_ws/src
-    git clone https://github.com/limxdynamics/pointfoot-gazebo-ros.git
+    git clone https://github.com/limxdynamics/tron1-gazebo-ros.git
     ```
     
 - 下载机器人模型描述文件
@@ -81,7 +81,7 @@
 - 下载RL部署源码：
     ```Bash
     cd ~/limx_ws/src
-    git clone https://github.com/limxdynamics/rl-deploy-ros-cpp.git
+    git clone https://github.com/limxdynamics/tron1-rl-deploy-ros.git
     ```
     
 - 编译工程：
